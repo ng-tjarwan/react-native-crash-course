@@ -3,8 +3,8 @@ import { StyleSheet, Text, TouchableOpacity } from "react-native";
 interface CustomButtonProps {
   title: string;
   handlePress: () => void;
-  containerStyles: string;
-  textStyles: string;
+  containerStyles?: string;
+  textStyles?: string;
   isLoading: boolean;
 }
 
