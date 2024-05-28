@@ -139,3 +139,19 @@ export const getLatestPosts = async () => {
     throw new Error(error);
   }
 };
+
+export const searchPosts = async ({ query }: { query: string }) => {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.search("title", query), Query.search("prompt", query)]
+    );
+
+    if (!posts) throw new Error("Something went wrong");
+
+    return posts.documents;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
