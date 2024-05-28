@@ -1,6 +1,7 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import React, { useState } from "react";
 import { icons } from "@/constants";
+import { ResizeMode, Video } from "expo-av";
 
 interface VideoCardProps {
   video: {
@@ -60,7 +61,26 @@ const VideoCard: React.FC<VideoCardProps> = ({
       </View>
 
       {play ? (
-        <Text>Playing</Text>
+        <Video
+          source={{ uri: video }}
+          className="w-full h-60 rounded-[35px] mt-3 bg-white/10"
+          resizeMode={ResizeMode.CONTAIN}
+          useNativeControls
+          shouldPlay
+          onPlaybackStatusUpdate={(playbackStatus) => {
+            if (!playbackStatus?.isLoaded) {
+              if (playbackStatus.error) {
+                console.log(
+                  `Encountered a fatal error during playback: ${playbackStatus.error}`
+                );
+              }
+            } else {
+              if (playbackStatus.didJustFinish) {
+                setPlay(false);
+              }
+            }
+          }}
+        />
       ) : (
         <TouchableOpacity
           activeOpacity={0.7}

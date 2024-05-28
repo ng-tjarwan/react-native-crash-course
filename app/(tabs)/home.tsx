@@ -13,7 +13,7 @@ import SearchInput from "@/components/SearchInput";
 import Trending from "@/components/Trending";
 import EmptyState from "@/components/Empty";
 import { useState } from "react";
-import { getAllPosts } from "@/lib/appwrite";
+import { getAllPosts, getLatestPosts } from "@/lib/appwrite";
 import useAppwrite from "@/hooks/useAppwrite";
 import VideoCard from "@/components/VideoCard";
 
@@ -21,6 +21,7 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: posts, isLoading, refetch } = useAppwrite(getAllPosts);
+  const { data: latestPosts } = useAppwrite(getLatestPosts);
 
   const { user } = useGlobalContext();
 
@@ -49,7 +50,7 @@ const Home = () => {
                   Welcome Back
                 </Text>
                 <Text className="text-2xl font-psemibold text-white">
-                  {user.username}
+                  {user?.username}
                 </Text>
               </View>
               <View className="mt-1.5">
@@ -68,7 +69,7 @@ const Home = () => {
                 Trending Videos
               </Text>
 
-              <Trending posts={[{ id: 1 }, { id: 2 }, { id: 3 }] ?? []} />
+              <Trending posts={latestPosts ?? []} />
             </View>
           </View>
         )}
