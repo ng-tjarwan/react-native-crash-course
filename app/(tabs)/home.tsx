@@ -1,11 +1,4 @@
-import {
-  Alert,
-  FlatList,
-  Image,
-  RefreshControl,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Image, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { images } from "@/constants";
@@ -16,11 +9,16 @@ import { useState } from "react";
 import { getAllPosts, getLatestPosts } from "@/lib/appwrite";
 import useAppwrite from "@/hooks/useAppwrite";
 import VideoCard from "@/components/VideoCard";
+import Loader from "@/components/Loader";
 
 const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: posts, isLoading, refetch } = useAppwrite(getAllPosts);
+  const {
+    data: posts,
+    isLoading: isAllPostLoading,
+    refetch,
+  } = useAppwrite(getAllPosts);
   const { data: latestPosts } = useAppwrite(getLatestPosts);
 
   const { user } = useGlobalContext();
@@ -47,7 +45,7 @@ const Home = () => {
             <View className="justify-between items-start flex-row mb-6">
               <View>
                 <Text className="font-pmedium text-sm text-gray-100">
-                  Welcome Back
+                  Welcome Back,
                 </Text>
                 <Text className="text-2xl font-psemibold text-white">
                   {user?.username}
@@ -73,12 +71,16 @@ const Home = () => {
             </View>
           </View>
         )}
-        ListEmptyComponent={() => (
-          <EmptyState
-            title="No Videos Found"
-            subtitle="Be the first one to upload a video"
-          />
-        )}
+        ListEmptyComponent={() =>
+          isAllPostLoading ? (
+            <Loader isLoading={true} />
+          ) : (
+            <EmptyState
+              title="No Videos Found"
+              subtitle="Be the first one to upload a video"
+            />
+          )
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

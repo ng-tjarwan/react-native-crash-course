@@ -1,4 +1,4 @@
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, ScrollView, Text, View } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -7,6 +7,7 @@ import FormField from "@/components/FormField";
 import CustomButton from "@/components/CustomButton";
 import { Link, router } from "expo-router";
 import { createUser } from "@/lib/appwrite";
+import { useGlobalContext } from "@/context/GlobalProvider";
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -15,6 +16,8 @@ const SignUp = () => {
     password: "",
   });
   const [submitting, setIsSubmitting] = useState(false);
+
+  const { setIsLoggedIn, setUser } = useGlobalContext();
 
   const submit = async () => {
     if (!form.email || !form.password || !form.username) {
@@ -26,7 +29,9 @@ const SignUp = () => {
       setIsSubmitting(true);
 
       const data = await createUser({ ...form });
-      console.log("data", data);
+
+      setUser(data);
+      setIsLoggedIn(true);
 
       router.replace("/home");
     } catch (error: any) {
