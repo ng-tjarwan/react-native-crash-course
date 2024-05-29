@@ -117,7 +117,8 @@ export const getAllPosts = async () => {
   try {
     const posts = await databases.listDocuments(
       appwriteConfig.databaseId,
-      appwriteConfig.videoCollectionId
+      appwriteConfig.videoCollectionId,
+      [Query.orderDesc("$createdAt")]
     );
 
     return posts.documents;
@@ -161,7 +162,7 @@ export const getUserPosts = async ({ userId }: { userId: string }) => {
     const posts = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.videoCollectionId,
-      [Query.equal("creator", userId)]
+      [Query.equal("creator", userId), Query.orderDesc("$createdAt")]
     );
 
     if (!posts) throw new Error("Something went wrong");
@@ -177,6 +178,87 @@ export const signOut = async () => {
     const session = await account.deleteSession("current");
 
     return session;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+export const uploadFile = async (file: any, type: string) => {
+  if (!file) return;
+  const { mimeType, fileName, filesize, uri, ...rest } = file;
+
+  const asset = {
+    type: mimeType,
+    name: fileName,
+    size: filesize,
+    uri,
+  };
+
+  try {
+    const uploadedFile = await storage.createFile(
+      appwriteConfig.storageId,
+      ID.unique(),
+      asset
+    );
+
+    const fileUrl = await getFilePreview(uploadedFile.$id, type);
+
+    return fileUrl;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+export const createVideo = async (form: any) => {
+  try {
+    const [thumbnailUrl, videoUrl] = await Promise.all([
+      uploadFile(form.thumbnail, "image"),
+      uploadFile(form.video, "video"),
+    ]);
+
+    console.log("createVideo", { thumbnailUrl, videoUrl });
+
+    const newPost = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      ID.unique(),
+      {
+        title: form.title,
+        prompt: form.prompt,
+        thumbnail: thumbnailUrl,
+        video: videoUrl,
+        creator: form.userId,
+      }
+    );
+
+    return newPost;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+const getFilePreview = async (fileId: string, type: string) => {
+  let fileUrl;
+
+  try {
+    if (type === "video") {
+      fileUrl = storage.getFileView(appwriteConfig.storageId, fileId);
+    } else if (type === "image") {
+      fileUrl = storage.getFilePreview(
+        appwriteConfig.storageId,
+        fileId,
+        2000,
+        2000,
+        "top",
+        100
+      );
+    } else {
+      throw new Error("Invalid file type");
+    }
+
+    if (!fileUrl) throw Error;
+
+    return fileUrl;
   } catch (error: any) {
     throw new Error(error);
   }
